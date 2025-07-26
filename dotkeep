@@ -24,10 +24,10 @@ while IFS= read -r filepath || [[ -n "$filepath" ]]; do
     if [[ -e "$expanded_path" ]]; then
         dest="$BACKUP_DIR/$(basename "$expanded_path")"
         cp -r "$expanded_path" "$dest"
-        echo "✔ Success: backed up: $display_path" ➡ "$dest"
+        echo -e "\e[32m✔\e[0m Success: backed up: $display_path" ➡ "$dest"
     else
-        echo "✘ Warning: file not found: $display_path"
+        echo -e "\e[31m✘\e[0m Warning: file not found: $display_path"
     fi
 done < "$CONFIG_FILE"
 
-echo "✔ Backup complete!"
+echo -e "\e[32m✔\e[0m Backup complete!"
