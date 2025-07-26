@@ -1,0 +1,33 @@
+#!/bin/bash
+
+CONFIG_DIR="$HOME/.config/dotkeep"
+CONFIG_FILE="$CONFIG_DIR/dotkeep.conf"
+BACKUP_DIR="$CONFIG_DIR/dotfiles"
+
+mkdir -p "$CONFIG_DIR"
+mkdir -p "$BACKUP_DIR"
+
+# If a config file doesn't exist, create a blank one and exit
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    echo "# Please add paths to your dotfiles, one line per file." > "$CONFIG_FILE"
+    echo "No config file found. Created one at: $CONFIG_FILE"
+    echo "Please add your dotfiles to the config file and run the program again."
+    exit 1
+fi
+
+# Read the config file
+while IFS= read -r filepath || [[ -n "$filepath" ]]; do
+    [[ -z "$filepath" || "$filepath" =~ ^# ]] && continue
+    
+    expanded_path="${filepath/#\~/$HOME}"
+    display_path="${expanded_path/#$HOME/\~}"
+    if [[ -e "$expanded_path" ]]; then
+        dest="$BACKUP_DIR/$(basename "$expanded_path")"
+        cp -r "$expanded_path" "$dest"
+        echo "✔ Success: backed up: $display_path" ➡ "$dest"
+    else
+        echo "✘ Warning: file not found: $display_path"
+    fi
+done < "$CONFIG_FILE"
+
+echo "✔ Backup complete!"
