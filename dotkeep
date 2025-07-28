@@ -15,6 +15,11 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
     exit 1
 fi
 
+if ! command -v rsync; then
+    echo -e "\e[31m✘\e[0m Error: dotkeep requires 'rsync' to run. Please install it first."
+    exit 1
+fi
+
 # Read the config file
 while IFS= read -r filepath || [[ -n "$filepath" ]]; do
     [[ -z "$filepath" || "$filepath" =~ ^# ]] && continue
@@ -22,8 +27,10 @@ while IFS= read -r filepath || [[ -n "$filepath" ]]; do
     expanded_path="${filepath/#\~/$HOME}"
     display_path="${expanded_path/#$HOME/\~}"
     if [[ -e "$expanded_path" ]]; then
-        dest="$BACKUP_DIR/$(basename "$expanded_path")"
-        cp -r "$expanded_path" "$dest"
+        # dest="$BACKUP_DIR/$(basename "$expanded_path")"
+        # cp -r "$expanded_path" "$dest" // method to backup without rync
+        # not using it because i found that rsnyc is better
+        rsync -a "$expanded_path" "$BACKUP_DIR/"
         echo -e "\e[32m✔\e[0m Success: backed up: $display_path" ➡ "$dest"
     else
         echo -e "\e[31m✘\e[0m Warning: file not found: $display_path"
