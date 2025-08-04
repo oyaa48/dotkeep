@@ -4,19 +4,12 @@ CONFIG_DIR="$HOME/.config/dotkeep"
 CONFIG_FILE="$CONFIG_DIR/dotkeep.conf"
 BACKUP_DIR="$CONFIG_DIR/dotfiles"
 
-GIT_AUTO_PUSH=false
-DOTKEEP_COMMIT_MESSAGE="dotkeep: update at $(date +"%Y-%m-%d %H:%M:%S")"
-
 mkdir -p "$BACKUP_DIR" "$CONFIG_DIR"
 
 # If a config file doesn't exist, create a blank one and exit
 if [[ ! -f "$CONFIG_FILE" ]]; then
    cat > "$CONFIG_FILE" <<'EOF'
 # dotkeep configuration file
-
-# Git settings
-GIT_AUTO_PUSH=false
-DOTKEEP_COMMIT_MESSAGE="dotkeep: updated at \$(date +"%Y-%m-%d %H:%M:%S")"
 
 # Add the paths of files/directories you want to back up here
 
@@ -45,8 +38,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         val="${val#\"}"
         key="$(echo "$key" | xargs)"
         case "$key" in
-            GIT_AUTO_PUSH) GIT_AUTO_PUSH="$val" ;;
-            DOTKEEP_COMMIT_MESSAGE) DOTKEEP_COMMIT_MESSAGE="$val" ;;
             *) echo "Warning: Unknown config key "$key"" ;;
         esac
     else
@@ -54,7 +45,6 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     fi
 done < "$CONFIG_FILE"
 
-GIT_COMMIT_MESSAGE=$(eval "echo \"$DOTKEEP_COMMIT_MESSAGE\"")
 
 for filepath in "${FILES_TO_BACKUP[@]}"; do
     expanded_path="${filepath/#\~/$HOME}"
@@ -82,17 +72,5 @@ for filepath in "${FILES_TO_BACKUP[@]}"; do
         fi
     fi
 done
-
-if [[ "$GIT_AUTO_PUSH" == true ]]; then
-    if [[ -d "$CONFIG_DIR/.git" ]]; then
-        git -C "$CONFIG_DIR" add .
-        git -C "$CONFIG_DIR" commit -m "$GIT_COMMIT_MESSAGE"
-        git -C "$CONFIG_DIR" push
-    else
-        echo -e "\e[31m✘\e[0m Error: Git auto-push is enabled "$CONFIG_DIR" is not a Git repository."
-        echo "To initialize it, run:"
-        echo "cd $CONFIG_DIR && git init && git remote add origin <your-repo-url>"
-    fi
-fi
 
 echo -e "\e[32m✔\e[0m Backup complete!"
