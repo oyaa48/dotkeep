@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# ==== CONFIG ====
 CONFIG_DIR="$HOME/.config/dotkeep"
 CONFIG_FILE="$CONFIG_DIR/dotkeep.conf"
 BACKUP_DIR="$CONFIG_DIR/dotfiles"
@@ -17,6 +18,39 @@ EOF
 
     echo "dotkeep: Created default config at ${CONFIG_FILE/#$HOME/\~}"
 fi
+
+# ==== FUNCTIONS ====
+
+add_file() {
+    local file="$1"
+    file=$(realpath -e "$file") || {
+        echo -e "\e[31m✘\e[0m dotkeep: File not found: $1"
+        exit 1
+    }
+
+    if grep -Fxq "$file" "$tracked_file"; then
+        echo "\e[31m✘\e[0m dotkeep: Already being synched; $1"
+    else
+        echo "$file" >> "$tracked_file"
+        echo "\e[31m✔\e[0m dotkeep: Added to tracking list: $file"
+    fi
+}
+
+
+
+# ==== MAIN SCRIPT ====
+
+case "$1" in
+    add)
+        if [ -z "$2" ]; then
+            echo "Usage: dotkeep add <file>"
+            exit 1
+        fi
+        add_file "$2"
+        ;;
+    sync)
+esac
+
 
 if ! command -v rsync >/dev/null 2>&1; then
     echo -e "\e[31m✘\e[0m Error: dotkeep requires \'rsync\' to run. Please install it first."
